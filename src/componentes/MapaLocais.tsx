@@ -167,16 +167,17 @@ const MapaLocais = () => {
 
   const tracarRota = useCallback(
     async (destino: Local) => {
-      // Adicione async aqui
       if (!userLocation) {
         alert("Permita o acesso à sua localização para traçar a rota");
         return;
       }
 
+      // Limpa a rota anterior imediatamente
+      setDirections(null);
       setSelectedLocal(destino);
 
-      // Adicione esta linha para chamar calcularTemposViagem
-      await calcularTemposViagem(destino);
+      // Calcula os tempos de viagem em paralelo
+      calcularTemposViagem(destino);
 
       const directionsService = new google.maps.DirectionsService();
 
@@ -271,7 +272,7 @@ const MapaLocais = () => {
 
   const centralizarNoUsuario = () => {
     setIsLoading(true);
-    setLocationError(null);
+    // Não vamos limpar o erro aqui para evitar flash
 
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
@@ -281,6 +282,7 @@ const MapaLocais = () => {
             lng: position.coords.longitude,
           };
           setUserLocation(newLocation);
+          setLocationError(null); // Limpa o erro apenas após sucesso
 
           if (map) {
             map.panTo(newLocation);
@@ -291,8 +293,12 @@ const MapaLocais = () => {
           buscarLocais();
         },
         (error) => {
-          console.error("Erro na geolocalização:", error);
-          setLocationError("Não foi possível obter sua localização.");
+          // Só mostra erro se realmente não conseguir obter a localização
+          if (error.code === error.PERMISSION_DENIED) {
+            setLocationError("Permissão de localização negada.");
+          } else if (!userLocation) {
+            setLocationError("Não foi possível obter sua localização.");
+          }
           setIsLoading(false);
         },
         {
@@ -324,6 +330,7 @@ const MapaLocais = () => {
             lng: position.coords.longitude,
           };
           setUserLocation(newLocation);
+          setLocationError(null); // Limpa o erro após sucesso
 
           if (map) {
             map.panTo(newLocation);
@@ -334,8 +341,10 @@ const MapaLocais = () => {
           }
         },
         (error) => {
-          console.error("Erro na geolocalização:", error);
-          setLocationError("Não foi possível obter sua localização.");
+          // Só mostra erro em caso de negação de permissão
+          if (error.code === error.PERMISSION_DENIED) {
+            setLocationError("Permissão de localização negada.");
+          }
         },
         {
           enableHighAccuracy: true,
@@ -724,17 +733,12 @@ const MapaLocais = () => {
               title="Você está aqui"
               options={{
                 icon: {
-                  url:
-                    "data:image/svg+xml;base64," +
-                    btoa(`
-          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="12" cy="12" r="10" fill="#4F46E5"/>
-            <path d="M12 13C13.6569 13 15 11.6569 15 10C15 8.34315 13.6569 7 12 7C10.3431 7 9 8.34315 9 10C9 11.6569 10.3431 13 12 13Z" fill="white"/>
-            <path d="M16 15H8C7.44772 15 7 15.4477 7 16C7 17.6569 9.23858 19 12 19C14.7614 19 17 17.6569 17 16C17 15.4477 16.5523 15 16 15Z" fill="white"/>
-          </svg>
-        `),
-                  scaledSize: new google.maps.Size(30, 30),
-                  anchor: new google.maps.Point(15, 15),
+                  url: "/mnt/data/boneco-fixo.png",
+                  scaledSize: new google.maps.Size(42, 42), // Diminuindo um pouco
+                  anchor: new google.maps.Point(21, 42), // Ajustando o ponto de ancoragem
+                  strokeColor: "#1E40AF", // Contorno em azul mais escuro (blue-800)
+                  strokeWeight: 2, // Espessura do contorno
+                  fillColor: "#3B82F6", // Mantendo o azul do aplicativo (blue-500)
                 },
               }}
             />
@@ -746,17 +750,9 @@ const MapaLocais = () => {
               title="Você está aqui"
               options={{
                 icon: {
-                  url:
-                    "data:image/svg+xml;base64," +
-                    btoa(`
-          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="12" cy="12" r="10" fill="#22C55E"/>
-            <path d="M12 13C13.6569 13 15 11.6569 15 10C15 8.34315 13.6569 7 12 7C10.3431 7 9 8.34315 9 10C9 11.6569 10.3431 13 12 13Z" fill="white"/>
-            <path d="M16 15H8C7.44772 15 7 15.4477 7 16C7 17.6569 9.23858 19 12 19C14.7614 19 17 17.6569 17 16C17 15.4477 16.5523 15 16 15Z" fill="white"/>
-          </svg>
-        `),
-                  scaledSize: new google.maps.Size(30, 30),
-                  anchor: new google.maps.Point(15, 15),
+                  url: "/mnt/data/boneco-fixo-2.png",
+                  scaledSize: new google.maps.Size(42, 42), // Diminuindo um pouco
+                  anchor: new google.maps.Point(21, 42), // Ajustando o ponto de ancoragem
                 },
               }}
             />

@@ -9,52 +9,71 @@ import {
   Heart,
   Activity,
 } from "lucide-react";
+import { useTranslation } from "../../i18n/useTranslations";
+import { useLanguage } from '../../contexts/LanguageContext';
+import { TranslationRecord } from "../../i18n/types";
 
 const PaginaDepartamento = () => {
-  const departments = [
+  const { selectedLanguage } = useLanguage();
+  const { t } = useTranslation(selectedLanguage);
+
+  const departments: Array<{
+    icon: JSX.Element;
+    name: keyof Pick<TranslationRecord, 
+      | "department.health-surveillance"
+      | "department.accidents"
+      | "department.chronic"
+      | "department.mental-health"
+      | "department.infectious"
+      | "department.zoonoses"
+      | "department.medications"
+      | "department.maternal"
+      | "department.epidemiology">;
+    link: string;
+  }> = [
     {
       icon: <ShieldAlert className="h-6 w-6 text-white" />,
-      name: "Vigilância Sanitária",
+      name: "department.health-surveillance",
       link: "/vigilancia-sanitaria",
     },
     {
       icon: <Siren className="h-6 w-6 text-white" />,
-      name: "Acidentes e Emergências",
+      name: "department.accidents",
       link: "/acidentes",
     },
     {
       icon: <Stethoscope className="h-6 w-6 text-white" />,
-      name: "Doenças Crônicas",
+      name: "department.chronic",
       link: "/doencas-cronicas",
     },
     {
       icon: <Brain className="h-6 w-6 text-white" />,
-      name: "Saúde Mental",
+      name: "department.mental-health",
       link: "/saude-mental",
     },
     {
       icon: <Bug className="h-6 w-6 text-white" />,
-      name: "Doenças Infecciosas",
+      name: "department.infectious",
       link: "/doencas-infecciosas",
     },
     {
       icon: <Bird className="h-6 w-6 text-white" />,
-      name: "Zoonoses",
+      name: "department.zoonoses",
       link: "/zoonoses",
     },
     {
       icon: <Pill className="h-6 w-6 text-white" />,
-      name: "Medicamentos",
+      name: "department.medications",
       link: "/medicamentos",
     },
     {
       icon: <Heart className="h-6 w-6 text-white" />,
-      name: "Saúde Materno-Infantil",
+      name: "department.maternal",
       link: "/materno-infantil",
     },
     {
       icon: <Activity className="h-6 w-6 text-white" />,
-      name: "Epidemiologia",
+      name: "department.epidemiology",
       link: "/epidemiologia",
     },
   ];
@@ -74,7 +93,7 @@ const PaginaDepartamento = () => {
               >
                 ←
               </button>
-              <h1 className="text-lg font-semibold">Módulo Notificações</h1>
+              <h1 className="text-lg font-semibold">{t("department.title")}</h1>
             </div>
           </header>
 
@@ -89,7 +108,7 @@ const PaginaDepartamento = () => {
                 >
                   {dept.icon}
                   <span className="text-white text-center text-xs font-medium">
-                    {dept.name}
+                    {t(dept.name)}
                   </span>
                 </div>
               ))}

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
 
 // Definindo tipos para as props do FormField
 interface FormFieldProps {
@@ -7,11 +7,12 @@ interface FormFieldProps {
   type?: string;
   required?: boolean;
   options?: string[];
-  [key: string]: any; // Para permitir outras props adicionais
+  name?: string;
+  [key: string]: any;
 }
 
 // Componente base do formulário que será reutilizado
-const FormField: React.FC<FormFieldProps> = ({ label, type = "text", required = false, options = [], ...props }) => {
+const FormField: React.FC<FormFieldProps> = ({ label, type = "text", required = false, options = [], name, ...props }) => {
   if (type === "select") {
     return (
       <div className="mb-4">
@@ -36,9 +37,42 @@ const FormField: React.FC<FormFieldProps> = ({ label, type = "text", required = 
     return (
       <div className="mb-4">
         <label className="flex items-center gap-2 text-sm">
-          <input type="checkbox" {...props} />
+          <input type="checkbox" className="w-4 h-4" {...props} />
           {label}
         </label>
+      </div>
+    );
+  }
+
+  if (type === "radio") {
+    return (
+      <div className="mb-4">
+        <span className="block text-sm mb-1">
+          {label} {required && <span className="text-red-500">*</span>}
+        </span>
+        <div className="flex flex-wrap gap-4">
+          {options.map(opt => (
+            <label key={opt} className="flex items-center gap-2 text-sm">
+              <input type="radio" value={opt} name={name} className="w-4 h-4" required={required} {...props} />
+              {opt}
+            </label>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (type === "textarea") {
+    return (
+      <div className="mb-4">
+        <label className="block text-sm mb-1">
+          {label} {required && <span className="text-red-500">*</span>}
+        </label>
+        <textarea 
+          className="w-full p-2 border rounded-lg text-sm min-h-[100px]"
+          required={required}
+          {...props}
+        />
       </div>
     );
   }
@@ -58,14 +92,10 @@ const FormField: React.FC<FormFieldProps> = ({ label, type = "text", required = 
   );
 };
 
-// Definindo tipos para as props do DepartmentForm
-interface DepartmentFormProps {
-  department: string;
-}
-
 // Formulários específicos para cada departamento
 const VigilanciaSanitariaForm: React.FC = () => (
   <div>
+    <FormField label="Data da Ocorrência" type="date" required />
     <FormField label="Estabelecimento" required />
     <FormField label="Tipo de Inspeção" type="select" required options={[
       "Rotina",
@@ -86,6 +116,7 @@ const VigilanciaSanitariaForm: React.FC = () => (
 
 const AcidentesForm: React.FC = () => (
   <div>
+    <FormField label="Data da Ocorrência" type="date" required />
     <FormField label="Tipo de Acidente" type="select" required options={[
       "Trabalho",
       "Trânsito",
@@ -105,6 +136,7 @@ const AcidentesForm: React.FC = () => (
 
 const DoencasCronicasForm: React.FC = () => (
   <div>
+    <FormField label="Data da Ocorrência" type="date" required />
     <FormField label="Doença" type="select" required options={[
       "Diabetes",
       "Hipertensão",
@@ -121,6 +153,7 @@ const DoencasCronicasForm: React.FC = () => (
 
 const SaudeMentalForm: React.FC = () => (
   <div>
+    <FormField label="Data da Ocorrência" type="date" required />
     <FormField label="Tipo de Atendimento" type="select" required options={[
       "Primeira Consulta",
       "Retorno",
@@ -140,6 +173,7 @@ const SaudeMentalForm: React.FC = () => (
 
 const DoencasInfecciosasForm: React.FC = () => (
   <div>
+    <FormField label="Data da Ocorrência" type="date" required />
     <FormField label="Doença Suspeita" type="select" required options={[
       "COVID-19",
       "Dengue",
@@ -155,6 +189,7 @@ const DoencasInfecciosasForm: React.FC = () => (
 
 const ZoonosesForm: React.FC = () => (
   <div>
+    <FormField label="Data da Ocorrência" type="date" required />
     <FormField label="Tipo de Ocorrência" type="select" required options={[
       "Mordedura Animal",
       "Caso Suspeito de Raiva",
@@ -174,6 +209,7 @@ const ZoonosesForm: React.FC = () => (
 
 const MedicamentosForm: React.FC = () => (
   <div>
+    <FormField label="Data da Ocorrência" type="date" required />
     <FormField label="Medicamento" required />
     <FormField label="Classificação" type="select" required options={[
       "Controlado",
@@ -189,6 +225,7 @@ const MedicamentosForm: React.FC = () => (
 
 const MaternoInfantilForm: React.FC = () => (
   <div>
+    <FormField label="Data da Ocorrência" type="date" required />
     <FormField label="Tipo de Atendimento" type="select" required options={[
       "Pré-natal",
       "Parto",
@@ -203,20 +240,217 @@ const MaternoInfantilForm: React.FC = () => (
   </div>
 );
 
-const EpidemiologiaForm: React.FC = () => (
-  <div>
-    <FormField label="Agravo Notificado" type="select" required options={[
-      "Surto",
-      "Epidemia",
-      "Caso Isolado"
-    ]} />
-    <FormField label="Doença/Condição" required />
-    <FormField label="Data da Notificação" type="date" required />
-    <FormField label="Número de Casos" type="number" required />
-    <FormField label="Área Afetada" required />
-    <FormField label="Medidas de Controle" type="checkbox" />
-  </div>
-);
+// Formulário de Epidemiologia modificado com radios
+const EpidemiologiaForm: React.FC = () => {
+  const [openSections, setOpenSections] = useState<{[key: string]: boolean}>({
+    estabelecimento: false,
+    paciente: false,
+    clinicas: false,
+    manejo: false,
+    agravo: false
+  });
+
+  const toggleSection = (section: string) => {
+    setOpenSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
+  const SectionHeader: React.FC<{title: string, section: string}> = ({ title, section }) => (
+    <button
+      onClick={() => toggleSection(section)}
+      className="w-full flex justify-between items-center p-3 bg-gray-100 rounded-lg mb-2 text-left"
+    >
+      <span className="font-semibold text-sm">{title}</span>
+      {openSections[section] ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+    </button>
+  );
+
+  return (
+    <div>
+      {/* Sistema Regular ou Atuação complementar na COP */}
+      <FormField 
+        label="Selecione o sistema" 
+        type="radio" 
+        name="sistema"
+        options={[
+          "Faz parte do Sistema Regular",
+          "Atuação complementar na COP"
+        ]}
+      />
+
+      {/* ESTABELECIMENTO */}
+      <div className="mb-4 border rounded-lg p-2">
+        <SectionHeader 
+          title="INFORMAÇÕES SOBRE O ESTABELECIMENTO" 
+          section="estabelecimento" 
+        />
+        {openSections.estabelecimento && (
+          <div className="p-3 border-t">
+            <h3 className="text-sm font-medium mb-2">Identificação/Localização</h3>
+            <FormField label="Nome Completo" type="text" />
+            <FormField label="Município" type="text" />
+            <FormField label="Endereço" type="text" />
+
+            <h3 className="text-sm font-medium mt-4 mb-2">Caracterização</h3>
+            {/* Agora usando radios ao invés de vários checkboxes */}
+            <FormField 
+              label="Selecione a caracterização" 
+              type="radio" 
+              name="caracterizacao" 
+              options={[
+                "Média e alta complexidade referencial regional",
+                "Média e alta complexidade municipal",
+                "Unidade de Pronto Atendimento (UPA)",
+                "Unidade de Referência",
+                "Unidade de Atenção Primária"
+              ]}
+            />
+
+            <h3 className="text-sm font-medium mt-4 mb-2">Gestão</h3>
+            {/* Mesma mudança para Gestão */}
+            <FormField 
+              label="Tipo de Gestão" 
+              type="radio" 
+              name="gestao" 
+              options={[
+                "Pública",
+                "Gerência Municipal",
+                "Gerência Estadual",
+                "Privada"
+              ]}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* PACIENTE */}
+      <div className="mb-4 border rounded-lg p-2">
+        <SectionHeader 
+          title="IDENTIFICAÇÃO DO PACIENTE SUSPEITO" 
+          section="paciente" 
+        />
+        {openSections.paciente && (
+          <div className="p-3 border-t">
+            <FormField label="Nome" type="text" />
+            <FormField label="Idade" type="text" />
+            {/* Antes era select, agora radio */}
+            <FormField 
+              label="Sexo" 
+              type="radio" 
+              name="sexo"
+              options={["Masculino", "Feminino"]} 
+            />
+            <FormField label="Estado" type="text" />
+            <FormField label="Endereço" type="text" />
+            <FormField 
+              label="Procedência de lugar diferente do estado atual" 
+              type="radio"
+              name="procedencia"
+              options={["Sim", "Não"]} 
+            />
+          </div>
+        )}
+      </div>
+
+      {/* INFORMAÇÕES CLÍNICAS */}
+      <div className="mb-4 border rounded-lg p-2">
+        <SectionHeader 
+          title="INFORMAÇÕES CLÍNICAS" 
+          section="clinicas" 
+        />
+        {openSections.clinicas && (
+          <div className="p-3 border-t">
+            <FormField label="Data do atendimento" type="date" />
+            <FormField 
+              label="Sinais clínicos relatados (Utilizar números relativos às manifestações)" 
+              type="textarea" 
+            />
+            <FormField label="Agravo suspeito" type="text" />
+          </div>
+        )}
+      </div>
+
+      {/* MANEJO CLÍNICO */}
+      <div className="mb-4 border rounded-lg p-2">
+        <SectionHeader 
+          title="MANEJO CLÍNICO E EVOLUÇÃO" 
+          section="manejo" 
+        />
+        {openSections.manejo && (
+          <div className="p-3 border-t">
+            <FormField 
+              label="Terapêutica proposta em nível da Atenção Primária" 
+              type="textarea" 
+            />
+            <FormField 
+              label="Terapêutica proposta em nível de Atenção de Média e Alta Complexidade" 
+              type="textarea" 
+            />
+            {/* Antes era um select, agora radio */}
+            <FormField 
+              label="Quanto à evolução clínica"
+              type="radio" 
+              name="evolucao_clinica"
+              options={["Curado", "Óbito"]} 
+            />
+            <FormField label="Data" type="date" />
+          </div>
+        )}
+      </div>
+
+      {/* AGRAVO */}
+      <div className="mb-4 border rounded-lg p-2">
+        <SectionHeader 
+          title="EM CASO DE DIAGNÓSTICO SUSPEITO DE AGRAVO TRANSMISSÍVEL (DNC)" 
+          section="agravo" 
+        />
+        {openSections.agravo && (
+          <div className="p-3 border-t">
+            <FormField 
+              label="Notificação à Vigilância Epidemiológica" 
+              type="checkbox" 
+            />
+            <FormField 
+              label="Data e hora da informação" 
+              type="datetime-local" 
+            />
+            <FormField 
+              label="Níveis de Vigilância Informados (Seleção Múltipla)" 
+              type="select" 
+              multiple 
+              options={[
+                "Hospitalar",
+                "Municipal",
+                "Estadual",
+                "Ministério da Saúde"
+              ]} 
+            />
+            <h3 className="text-sm font-medium mt-4 mb-2">Investigação</h3>
+            <FormField label="Investigação laboratorial" type="checkbox" />
+            <FormField label="Exame específico solicitado" type="text" />
+            <FormField label="Material coletado" type="text" />
+            <FormField label="Data da coleta" type="date" />
+            <FormField 
+              label="Unidade laboratorial que foi encaminhada a amostra" 
+              type="text" 
+            />
+            <FormField 
+              label="Data da chegada da amostra na Unidade laboratorial" 
+              type="date" 
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Definindo tipos para as props do DepartmentForm
+interface DepartmentFormProps {
+  department: string;
+}
 
 // Componente principal que renderiza o formulário apropriado
 const DepartmentForm: React.FC<DepartmentFormProps> = ({ department }) => {
@@ -225,7 +459,6 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({ department }) => {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSubmitted(true);
-    // Aqui você implementaria a lógica de envio do formulário
   };
 
   const getForm = () => {
@@ -278,11 +511,6 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({ department }) => {
               </div>
             ) : (
               <form onSubmit={handleSubmit}>
-                <FormField 
-                  label="Data da Ocorrência" 
-                  type="date" 
-                  required 
-                />
                 {getForm()}
                 <div className="flex gap-2 mt-6">
                   <button

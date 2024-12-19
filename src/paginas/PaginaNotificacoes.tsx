@@ -1,12 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "../i18n/useTranslations";
+import { Language } from "../i18n/types";
+import { campaignTranslations } from "../i18n/campaigns";
+import { useLanguage } from "../contexts/LanguageContext";
 import {
   Building2,
   Heart,
   FileText,
   MessageSquare,
   AlertTriangle,
-  MapPin,
   Search,
   Menu,
   Bell,
@@ -19,17 +22,120 @@ import {
   User,
   ChartSpline,
   BookType,
+  Syringe,
+  Utensils,
+  Trees,
+  Building,
+  BriefcaseMedical,
+  Hospital,
+  Globe,
+  ChevronDown,
 } from "lucide-react";
+
+interface Material {
+  id: string;
+  title: string;
+  desc: string;
+  image: string;
+  link: string;
+}
 
 const PaginaNotificacoes: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isLanguageOpen, setIsLanguageOpen] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const navigate = useNavigate();
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const [currentTab, setCurrentTab] = useState("inicio");
+  const { selectedLanguage, setSelectedLanguage } = useLanguage();
+  const { t } = useTranslation(selectedLanguage);
 
-  // Função para lidar com o swipe
+  const materiais: Material[] = [
+    {
+      id: "dezembro-vermelho",
+      title: "", // será preenchido dinamicamente
+      desc: "", // será preenchido dinamicamente
+      image: "/mnt/data/Dezembro Vermelho.png",
+      link: "/campanha-dezembro-vermelho",
+    },
+    {
+      id: "novembro-azul",
+      title: "", // será preenchido dinamicamente
+      desc: "", // será preenchido dinamicamente
+      image: "/mnt/data/Novembro Azul.png",
+      link: "/campanha-novembro-azul",
+    },
+    {
+      id: "setembro-verde",
+      title: "", // será preenchido dinamicamente
+      desc: "", // será preenchido dinamicamente
+      image: "/mnt/data/An_illustration_for_an_organ_donation_awareness_ca.png",
+      link: "/setembro-verde",
+    },
+    {
+      id: "malaria-zero",
+      title: "", // será preenchido dinamicamente
+      desc: "", // será preenchido dinamicamente
+      image: "/mnt/data/An_illustration_for_a_malaria_prevention_campaign,.png",
+      link: "/malaria-zero",
+    },
+    {
+      id: "amamentacao",
+      title: "", // será preenchido dinamicamente
+      desc: "", // será preenchido dinamicamente
+      image: "/mnt/data/An_illustration_for_a_breastfeeding_awareness_camp.png",
+      link: "/amamentacao",
+    },
+  ];
+
+  const getLocalizedMaterials = useCallback(() => {
+    return materiais.map((material) => ({
+      ...material,
+      title:
+        campaignTranslations?.[selectedLanguage]?.[material.id]?.title ??
+        material.title,
+      desc:
+        campaignTranslations?.[selectedLanguage]?.[material.id]?.desc ??
+        material.desc,
+    }));
+  }, [selectedLanguage]);
+
+  const localizedMaterials = getLocalizedMaterials();
+
+  const languages = [
+    {
+      code: "pt-BR" as Language,
+      name: "Português",
+      flag: "https://flagcdn.com/br.svg",
+      fullName: "Português (Brasil)",
+    },
+    {
+      code: "en" as Language,
+      name: "English",
+      flag: "https://flagcdn.com/us.svg",
+      fullName: "English (US)",
+    },
+    {
+      code: "es" as Language,
+      name: "Español",
+      flag: "https://flagcdn.com/es.svg",
+      fullName: "Español",
+    },
+    {
+      code: "zh" as Language,
+      name: "中文",
+      flag: "https://flagcdn.com/cn.svg",
+      fullName: "中文 (简体)",
+    },
+    {
+      code: "fr" as Language,
+      name: "Français",
+      flag: "https://flagcdn.com/fr.svg",
+      fullName: "Français",
+    },
+  ] as const;
+
   const handleSwipe = () => {
     if (!touchStart || !touchEnd) return;
 
@@ -46,45 +152,38 @@ const PaginaNotificacoes: React.FC = () => {
     }
   };
 
-  type Material = {
-    title: string;
-    desc: string;
-    image: string;
-    link: string;
-  };
-
-  const materiais: Material[] = [
+  const pontosPrincipais = [
     {
-      title: "Campanha Dezembro Vermelho 2024",
-      desc: "Conscientização e combate ao HIV/AIDS em todo o Pará",
-      image: "/mnt/data/Dezembro Vermelho.png",
-      link: "/campanha-dezembro-vermelho",
+      nome: "vaccination", // chave para tradução
+      icone: <Syringe className="h-8 w-8 text-white" />,
+      link: "/mapa?tipo=vacinacao",
     },
     {
-      title: "Campanha Novembro Azul 2024",
-      desc: "Conscientização sobre a saúde do homem e prevenção ao câncer de próstata",
-      image: "/mnt/data/Novembro Azul.png",
-      link: "/campanha-novembro-azul",
+      nome: "food",
+      icone: <Utensils className="h-8 w-8 text-white" />,
+      link: "/mapa?tipo=alimentacao",
     },
     {
-      title: "Setembro Verde",
-      desc: "Conscientização sobre a doação de órgãos no Pará",
-      image: "/mnt/data/An_illustration_for_an_organ_donation_awareness_ca.png",
-      link: "/setembro-verde",
+      nome: "parks",
+      icone: <Trees className="h-8 w-8 text-white" />,
+      link: "/mapa?tipo=lazer",
     },
     {
-      title: "Malária Zero",
-      desc: "Campanha de prevenção à malária na região amazônica",
-      image: "/mnt/data/An_illustration_for_a_malaria_prevention_campaign,.png",
-      link: "/malaria-zero",
+      nome: "cultural",
+      icone: <Building className="h-8 w-8 text-white" />,
+      link: "/mapa?tipo=cultura",
     },
     {
-      title: "Amamentação",
-      desc: "Incentivo ao aleitamento materno nas comunidades paraenses",
-      image: "/mnt/data/An_illustration_for_a_breastfeeding_awareness_camp.png",
-      link: "/amamentacao",
+      nome: "health",
+      icone: <BriefcaseMedical className="h-8 w-8 text-white" />,
+      link: "/mapa?tipo=saude",
     },
-  ];
+    {
+      nome: "hospitals",
+      icone: <Hospital className="h-8 w-8 text-white" />,
+      link: "/mapa?tipo=hospitais",
+    },
+  ] as const;
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -93,6 +192,19 @@ const PaginaNotificacoes: React.FC = () => {
 
     return () => clearInterval(interval);
   }, [materiais.length]);
+
+  // Fecha o dropdown de idiomas quando clicar fora dele
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest(".language-dropdown")) {
+        setIsLanguageOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
     <div className="max-w-md mx-auto">
@@ -111,7 +223,7 @@ const PaginaNotificacoes: React.FC = () => {
                 <Bell className="h-6 w-6 text-white" />
               </div>
 
-              {/* Imagens lado a lado */}
+              {/* Logos */}
               <div className="flex justify-center items-center mt-4 space-x-0">
                 <img
                   src="/mnt/data/Logo Topo Sespa.png"
@@ -129,14 +241,16 @@ const PaginaNotificacoes: React.FC = () => {
                   className="h-8 w-auto"
                 />
               </div>
+
               {/* Barra de busca */}
               <div className="bg-blue-500/40 rounded-full p-3 flex items-center mt-4">
                 <Search className="h-5 w-5 text-white mr-2" />
                 <input
-                  placeholder="Buscar serviços"
+                  placeholder={t("search.placeholder")}
                   className="bg-transparent text-white placeholder-white/70 outline-none w-full text-sm"
                 />
               </div>
+
               {/* Carrossel */}
               <div className="mt-3 relative">
                 <div className="overflow-hidden">
@@ -151,7 +265,7 @@ const PaginaNotificacoes: React.FC = () => {
                       setTouchEnd(null);
                     }}
                   >
-                    {materiais.map((material, index) => (
+                    {localizedMaterials.map((material, index) => (
                       <div key={index} className="w-full flex-shrink-0">
                         <div
                           className="relative cursor-pointer transition-transform hover:scale-[0.98] active:scale-95"
@@ -199,74 +313,67 @@ const PaginaNotificacoes: React.FC = () => {
                 onClick={() => navigate("/mapa")}
               >
                 <Building2 className="h-6 w-6 text-blue-600 mb-2" />
-                <span className="text-sm text-center">Locais</span>
+                <span className="text-sm text-center">
+                  {t("menu.locations")}
+                </span>
               </div>
               <div
                 className="bg-white rounded-xl p-4 shadow-sm flex flex-col items-center cursor-pointer"
                 onClick={() => navigate("/campanhas")}
               >
                 <Heart className="h-6 w-6 text-blue-600 mb-2" />
-                <span className="text-sm text-center">Campanhas de Saúde</span>
+                <span className="text-sm text-center">
+                  {t("menu.campaigns")}
+                </span>
               </div>
               <div className="bg-white rounded-xl p-4 shadow-sm flex flex-col items-center cursor-pointer">
                 <FileText className="h-6 w-6 text-blue-600 mb-2" />
                 <span className="text-sm text-center">
-                  Materiais Educativos
+                  {t("menu.materials")}
                 </span>
               </div>
               <div className="bg-white rounded-xl p-4 shadow-sm flex flex-col items-center cursor-pointer">
                 <MessageSquare className="h-6 w-6 text-blue-600 mb-2" />
-                <span className="text-sm text-center">Fale Conosco</span>
+                <span className="text-sm text-center">
+                  {t("menu.whatsapp")}
+                </span>
               </div>
             </div>
 
-            {/* Seção WhatsApp */}
-            <div className="px-4">
-              <div className="bg-green-50 rounded-xl p-4 mb-4">
-                <div className="flex items-center gap-2">
-                  <svg
-                    viewBox="0 0 24 24"
-                    className="h-5 w-5 text-green-600 fill-current"
-                  >
-                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-                  </svg>
-                  <span className="text-green-700 text-sm">Canal WhatsApp</span>
-                </div>
-                <p className="text-xs text-green-600 mt-2">
-                  Receba informativos através do nosso canal SESPA
-                </p>
-              </div>
-
-              {/* Lista de Locais */}
-              <div className="space-y-2">
-                {[
-                  "UBS - Pedreira",
-                  "Hospital Geral - Guamá",
-                  "UPA - Sacramenta",
-                ].map((unit, i) => (
+            {/* Seção de Pontos de Interesse */}
+            <div className="px-4 mb-6">
+              <h2 className="text-lg font-semibold mb-4 text-center">
+                {t("section.locate")}
+              </h2>
+              <div className="grid grid-cols-3 gap-4">
+                {pontosPrincipais.map((ponto, index) => (
                   <div
-                    key={i}
-                    className="flex items-center justify-between p-3 bg-white rounded-lg"
+                    key={index}
+                    className="flex flex-col items-center cursor-pointer"
+                    onClick={() => navigate(ponto.link)}
                   >
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-blue-600" />
-                      <span className="text-sm">{unit}</span>
+                    <div className="w-16 h-16 rounded-full bg-blue-600 flex items-center justify-center mb-2 hover:bg-blue-700 transition-colors">
+                      {ponto.icone}
                     </div>
-                    <span className="text-xs text-blue-600">Ver no mapa</span>
+                    <span className="text-xs text-center font-medium">
+                      {t(`points.${ponto.nome}`)}
+                    </span>
+                    <p className="text-xs text-center text-gray-500 mt-1">
+                      {t(`points.${ponto.nome}.desc`)}
+                    </p>
                   </div>
                 ))}
               </div>
             </div>
           </div>
-
           {/* Navegação Inferior */}
+          Ah sim! Precisamos traduzir também os botões da navegação inferior.
+          Como as traduções já existem no arquivo translations.ts, basta
+          substituir os textos fixos por chamadas à função de tradução t():
+          typescriptCopy{/* Navegação Inferior */}
           <nav className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-100">
             <div className="flex items-center h-16 relative px-2">
-              {" "}
-              {/* Reduzido padding horizontal */}
               <div className="flex-1 flex justify-around items-center">
-                {" "}
-                {/* Container para os dois botões da esquerda */}
                 <button
                   className="flex flex-col items-center"
                   onClick={() => {
@@ -280,7 +387,7 @@ const PaginaNotificacoes: React.FC = () => {
                   <span
                     className={`text-xs ${currentTab === "inicio" ? "text-blue-600" : "text-gray-400"}`}
                   >
-                    Início
+                    {t("nav.home")}
                   </span>
                 </button>
                 <button
@@ -296,15 +403,12 @@ const PaginaNotificacoes: React.FC = () => {
                   <span
                     className={`text-xs ${currentTab === "mapa" ? "text-blue-600" : "text-gray-400"}`}
                   >
-                    Mapa
+                    {t("nav.map")}
                   </span>
                 </button>
               </div>
-              {/* Espaço central reduzido */}
               <div className="w-12"></div>
               <div className="flex-1 flex justify-around items-center">
-                {" "}
-                {/* Container para os dois botões da direita */}
                 <button
                   className="flex flex-col items-center"
                   onClick={() => {
@@ -318,7 +422,7 @@ const PaginaNotificacoes: React.FC = () => {
                   <span
                     className={`text-xs ${currentTab === "campanhas" ? "text-blue-600" : "text-gray-400"}`}
                   >
-                    Campanhas
+                    {t("nav.campaigns")}
                   </span>
                 </button>
                 <button
@@ -334,7 +438,7 @@ const PaginaNotificacoes: React.FC = () => {
                   <span
                     className={`text-xs ${currentTab === "perfil" ? "text-blue-600" : "text-gray-400"}`}
                   >
-                    Perfil
+                    {t("nav.profile")}
                   </span>
                 </button>
               </div>
@@ -351,14 +455,13 @@ const PaginaNotificacoes: React.FC = () => {
               <FileText className="w-6 h-6 text-white" />
             </button>
           </nav>
-
           {/* Menu Lateral */}
           <div
             className={`absolute inset-y-0 left-0 w-64 bg-blue-900 transform transition-transform duration-300 ease-in-out z-50 ${
               isMenuOpen ? "translate-x-0" : "-translate-x-full"
             }`}
           >
-            <div className="p-4">
+            <div className="p-4 flex flex-col h-full">
               <div className="flex items-center justify-between mb-6">
                 <img
                   src="/mnt/data/lateral completo.png"
@@ -366,29 +469,124 @@ const PaginaNotificacoes: React.FC = () => {
                   className="bg-white rounded p-1"
                 />
               </div>
-              {[
-                { icon: <FileText />, label: "Módulo Notificação", onClick: () => navigate('/pagina-departamento')},
-                { icon: <ChartSpline />, label: "Dashboard", onClick: () => navigate('/dashboard')},
-                { icon: <BookType />, label: "Módulo Materiais Informativos" },
-                { icon: <Building2 />, label: "Apps Auxiliares" },
-                { icon: <Lock />, label: "Segurança" },
-                { icon: <Network />, label: "Versão" },
-                { icon: <AlertTriangle />, label: "Relate um Bug" },
-                { icon: <LogOut className="rotate-180" />, label: "Sair" },
-              ].map((item, i) => (
-                <div
-                  key={i}
-                  className="flex items-center gap-3 text-white py-3 px-2 hover:bg-blue-800 rounded-lg cursor-pointer"
-                  onClick={item.onClick}
-                >
-                  <span className="text-white">{item.icon}</span>
-                  <span className="text-sm">{item.label}</span>
-                  <ChevronRight className="h-4 w-4 text-white ml-auto" />
+
+              {/* Itens do Menu */}
+              <div className="flex-grow">
+                {[
+                  {
+                    icon: <FileText />,
+                    label: t("menu.notification"),
+                    onClick: () => navigate("/pagina-departamento"),
+                  },
+                  {
+                    icon: <ChartSpline />,
+                    label: t("menu.dashboard"),
+                    onClick: () => navigate("/dashboard"),
+                  },
+                  {
+                    icon: <BookType />,
+                    label: t("menu.educational"),
+                  },
+                  {
+                    icon: <Building2 />,
+                    label: t("menu.apps"),
+                  },
+                  {
+                    icon: <Lock />,
+                    label: t("menu.security"),
+                  },
+                  {
+                    icon: <Network />,
+                    label: t("menu.version"),
+                  },
+                  {
+                    icon: <AlertTriangle />,
+                    label: t("menu.bug"),
+                  },
+                  {
+                    icon: <LogOut className="rotate-180" />,
+                    label: t("menu.logout"),
+                  },
+                ].map((item, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center gap-3 text-white py-3 px-2 hover:bg-blue-800 rounded-lg cursor-pointer"
+                    onClick={item.onClick}
+                  >
+                    <span className="text-white">{item.icon}</span>
+                    <span className="text-sm">{item.label}</span>
+                    <ChevronRight className="h-4 w-4 text-white ml-auto" />
+                  </div>
+                ))}
+              </div>
+
+              {/* Seletor de Idiomas */}
+              <div className="mt-auto border-t border-blue-800 pt-4">
+                <div className="relative language-dropdown">
+                  <div className="flex items-center gap-2 text-white/90 mb-2 px-2">
+                    <Globe className="h-5 w-5" />
+                    <span className="text-sm">Selecionar idioma</span>
+                  </div>
+
+                  <button
+                    onClick={() => setIsLanguageOpen(!isLanguageOpen)}
+                    className="w-full flex items-center justify-between bg-blue-800/50 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={
+                          languages.find(
+                            (lang) => lang.code === selectedLanguage
+                          )?.flag
+                        }
+                        alt="Bandeira"
+                        className="w-5 h-4 object-cover rounded-sm"
+                      />
+                      <span className="text-sm">
+                        {
+                          languages.find(
+                            (lang) => lang.code === selectedLanguage
+                          )?.fullName
+                        }
+                      </span>
+                    </div>
+                    <ChevronDown
+                      className={`h-4 w-4 transition-transform duration-200 ${
+                        isLanguageOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+
+                  {/* Lista suspensa de idiomas */}
+                  {isLanguageOpen && (
+                    <div className="absolute bottom-full left-0 right-0 mb-1 bg-blue-900 rounded-lg overflow-hidden shadow-lg border border-blue-800">
+                      {languages.map((lang) => (
+                        <button
+                          key={lang.code}
+                          onClick={() => {
+                            setSelectedLanguage(lang.code as Language);
+                            setIsLanguageOpen(false);
+                          }}
+                          className={`w-full flex items-center gap-3 px-3 py-2 text-sm transition-colors ${
+                            selectedLanguage === lang.code
+                              ? "bg-blue-600 text-white"
+                              : "text-white/90 hover:bg-blue-800"
+                          }`}
+                        >
+                          <img
+                            src={lang.flag}
+                            alt={`Bandeira ${lang.name}`}
+                            className="w-5 h-4 object-cover rounded-sm"
+                          />
+                          <span>{lang.fullName}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              ))}
+              </div>
             </div>
           </div>
-
           {/* Overlay do Menu */}
           {isMenuOpen && (
             <div
